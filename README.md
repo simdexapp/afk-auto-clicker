@@ -4,6 +4,8 @@ A fast, modern **auto-clicker + key-presser + macro tool for Windows** that work
 
 > ⚠️ **Use responsibly.** Many online games forbid input automation in their Terms of Service and using this in them can get your account banned. It's meant for AFK / idle / single-player use. See [Disclaimer](#-disclaimer).
 
+<p align="center"><img src="docs/screenshot.png" alt="AFK Auto Clicker" width="380"></p>
+
 ---
 
 ## ✨ Features

@@ -1,0 +1,11 @@
+# Code-signing config for Azure Trusted Signing.
+# Copy this file to  signing.local.ps1  (which is git-ignored) and fill in the
+# three identifiers from your Trusted Signing Account in the Azure portal.
+#
+# Authentication uses your `az login` session — NO secret is stored here.
+# Find these in the portal: Trusted Signing Account -> overview (endpoint) and
+# Certificate profiles (profile name).
+
+$TS_Endpoint = "https://eus.codesigning.azure.net"   # your account's region endpoint
+$TS_Account  = "your-trusted-signing-account-name"
+$TS_Profile  = "your-certificate-profile-name"

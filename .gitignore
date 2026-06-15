@@ -15,3 +15,6 @@ release/
 
 # legacy CustomTkinter prototype (superseded by app.py + engine.py)
 clicker.py
+
+# local signing config (never commit the real one; secret-free but machine-specific)
+*.local.ps1

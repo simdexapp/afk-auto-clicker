@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AFK Auto Clicker</title>
+<style>
+:root{
+  --bg:#0c0c0e; --frame:#101012; --card:#161619; --card2:#1c1c20;
+  --line:#2a2a30; --txt:#e8e8ec; --dim:#8a8a93; --dim2:#5b5b63;
+  --hi:#e8e8ec; --hi-soft:#cccdd3;
+  --green:#2f7d50; --green-h:#368a59; --green-sig:#54c486;
+  --red:#8c3b3b; --red-h:#9c4242; --red-sig:#e1726a;
+  font-family:"Segoe UI Variable Text","Segoe UI",-apple-system,system-ui,"Inter",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased}
+svg{display:block}
+.ic{width:15px;height:15px;flex:none}
+.ic-sm{width:13px;height:13px}
+
+.app{position:relative;height:100vh;padding:0;display:flex;flex-direction:column;animation:enter .4s ease}
+@keyframes enter{from{opacity:0}to{opacity:1}}
+.frame{position:relative;flex:1;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;
+  background:var(--frame);border:1px solid var(--line);box-shadow:0 18px 44px rgba(0,0,0,.55)}
+
+/* titlebar */
+.titlebar{display:flex;align-items:center;gap:11px;padding:14px 15px 12px}
+.brand{display:flex;align-items:center;gap:11px;flex:1;min-width:0}
+.logo{width:32px;height:32px;border-radius:7px;display:grid;place-items:center;flex:none;background:#7c5cff;box-shadow:0 2px 9px rgba(124,92,255,.45)}
+.logo svg{width:17px;height:17px;color:#fff}
+.title{font-weight:700;font-size:14.5px;letter-spacing:.1px;line-height:1}
+.title small{color:var(--dim2);font-weight:600;font-size:10.5px;margin-left:6px;letter-spacing:.4px}
+.hchip{display:flex;align-items:center;gap:6px;padding:5px 10px 5px 9px;border-radius:7px;font-size:10px;font-weight:700;
+  letter-spacing:.7px;text-transform:uppercase;color:var(--dim);background:var(--card2);border:1px solid var(--line)}
+.hchip .d{width:6px;height:6px;border-radius:50%;background:var(--dim2)}
+.hchip.live{color:var(--green-sig);border-color:rgba(84,196,134,.3);background:rgba(84,196,134,.08)}
+.hchip.live .d{background:var(--green-sig);animation:blink 1.2s infinite}
+.wbtns{display:flex;gap:9px;margin-left:4px}
+.wbtn{width:12px;height:12px;border-radius:50%;border:none;cursor:pointer;background:var(--line);transition:background .15s}
+.wbtn:hover{background:#3a3a42}
+.wbtn.close:hover{background:var(--red-sig)}
+
+/* profile bar */
+.profilebar{display:flex;gap:7px;align-items:center;padding:14px 15px 13px}
+.profilebar select{flex:1}
+.iconbtn,.minibtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 11px;border-radius:8px;
+  border:1px solid var(--line);background:var(--card2);color:var(--txt);cursor:pointer;font-size:12px;font-weight:600;transition:background .15s,border-color .15s}
+.iconbtn:hover,.minibtn:hover{background:#232328;border-color:#3a3a42}
+.iconbtn:active,.minibtn:active{background:#1a1a1e}
+
+/* tabs */
+.tabs{position:relative;display:flex;margin:0 15px 13px;padding:3px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+.tabs .pill{position:absolute;top:3px;bottom:3px;border-radius:8px;z-index:0;background:var(--hi);
+  transition:transform .26s cubic-bezier(.4,0,.2,1),width .26s cubic-bezier(.4,0,.2,1)}
+.tabs button{position:relative;z-index:1;flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:9px 6px;border:none;background:none;cursor:pointer;color:var(--dim);font-weight:600;font-size:12.5px;transition:color .2s}
+.tabs button.on{color:#0c0c0e}
+.tabs button .ic{width:14px;height:14px}
+
+/* body */
+.body{flex:1;overflow-y:auto;padding:0 15px 8px}
+.body::-webkit-scrollbar{width:7px}
+.body::-webkit-scrollbar-thumb{background:#2a2a30;border-radius:8px}
+.body::-webkit-scrollbar-thumb:hover{background:#3a3a42}
+.panel{display:none}.panel.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+.card{position:relative;border-radius:12px;padding:14px;margin-bottom:11px;background:var(--card);border:1px solid var(--line)}
+.card h3{display:flex;align-items:center;gap:7px;font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:12px;font-weight:700}
+.card h3 .ic{width:13px;height:13px;color:var(--dim2)}
+.row{display:flex;align-items:center;gap:9px;margin-bottom:10px}.row:last-child{margin-bottom:0}
+.row .lbl{color:var(--dim);min-width:52px;font-weight:500}
+.spread{justify-content:space-between}.grow{flex:1}
+
+/* inputs */
+input[type=number],select{background:var(--bg);border:1px solid var(--line);color:var(--txt);border-radius:8px;
+  padding:9px 11px;font-size:13px;font-weight:600;font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s;width:100%}
+input[type=number]{width:64px;text-align:center;font-variant-numeric:tabular-nums}
+input[type=number]:focus,select:focus{border-color:#55555f;box-shadow:0 0 0 3px rgba(255,255,255,.05)}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+select{appearance:none;cursor:pointer;padding-right:28px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%238a8a93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 11px center}
+
+/* segmented */
+.seg{position:relative;display:flex;padding:3px;border-radius:9px;background:var(--bg);border:1px solid var(--line)}
+.seg .pill{position:absolute;top:3px;bottom:3px;border-radius:7px;z-index:0;background:var(--hi);
+  transition:transform .24s cubic-bezier(.4,0,.2,1),width .24s cubic-bezier(.4,0,.2,1)}
+.seg button{position:relative;z-index:1;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:8px 8px;border:none;background:none;cursor:pointer;color:var(--dim);font-weight:600;font-size:12px;transition:color .2s;white-space:nowrap}
+.seg button.on{color:#0c0c0e}
+.seg button .ic{width:14px;height:14px}
+
+/* switch */
+.switch{position:relative;width:42px;height:24px;flex:none;cursor:pointer}
+.switch input{display:none}
+.switch .track{position:absolute;inset:0;border-radius:20px;background:#2c2c32;transition:background .2s}
+.switch .knob{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#73737c;transition:transform .24s cubic-bezier(.4,0,.2,1),background .2s}
+.switch input:checked+.track{background:var(--hi)}
+.switch input:checked+.track .knob{transform:translateX(18px);background:#0c0c0e}
+
+/* slider */
+.slidewrap{flex:1;display:flex;align-items:center}
+.slider{-webkit-appearance:none;height:5px;border-radius:5px;width:100%;background:#2c2c32}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--hi);cursor:pointer;border:none;transition:transform .12s}
+.slider::-webkit-slider-thumb:hover{transform:scale(1.12)}
+.val{color:var(--hi-soft);font-size:12px;font-weight:700;min-width:36px;text-align:right;font-variant-numeric:tabular-nums}
+.cps{color:var(--dim);font-size:11.5px;font-weight:600;letter-spacing:.2px}
+.hint{color:var(--dim);font-size:11.5px;line-height:1.55}
+.swatch{width:30px;height:30px;border-radius:7px;border:1px solid var(--line);flex:none}
+
+/* macro */
+.steps{display:flex;flex-direction:column;gap:5px;max-height:168px;overflow-y:auto;margin:-2px 0}
+.steps::-webkit-scrollbar{width:6px}.steps::-webkit-scrollbar-thumb{background:#2a2a30;border-radius:6px}
+.step{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;cursor:pointer;
+  background:var(--card2);border:1px solid transparent;transition:background .12s,border-color .12s;font-size:12.5px;font-weight:500}
+.step:hover{background:#232328}
+.step.sel{background:#232328;border-color:#3d3d45}
+.step .n{color:var(--dim2);font-variant-numeric:tabular-nums;min-width:16px;font-weight:700}
+.step .si{width:15px;height:15px;color:var(--dim);flex:none}
+.step.sel .si{color:var(--txt)}
+.step .d{margin-left:auto;color:var(--dim2);font-size:11px;font-variant-numeric:tabular-nums}
+.empty{color:var(--dim2);text-align:center;padding:22px;font-size:12.5px}
+.recbtn{display:flex;align-items:center;gap:9px;justify-content:center;width:100%;padding:11px;border:1px solid var(--line);border-radius:9px;cursor:pointer;
+  color:var(--txt);font-weight:600;font-size:13px;transition:background .15s,border-color .15s;margin-bottom:11px;background:var(--card2)}
+.recbtn:hover{background:#232328;border-color:#3a3a42}
+.recbtn.rec{background:var(--red);border-color:transparent;color:#fff}
+.recbtn.rec .recdot{background:#fff;animation:recpulse 1s infinite}
+@keyframes recpulse{50%{opacity:.45}}
+.recdot{width:9px;height:9px;border-radius:50%;background:var(--red-sig)}
+
+/* footer */
+.footer{padding:12px 15px 14px;border-top:1px solid var(--line);background:var(--bg)}
+.hkrow{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.hkrow .hint{display:flex;align-items:center;gap:6px;color:var(--dim)}
+.hkrow select{width:auto;flex:none;min-width:84px}
+.hkrow .seg{flex:1}
+.actions{display:flex;gap:10px}
+.bigbtn{flex:1;display:flex;align-items:center;justify-content:center;gap:9px;padding:14px;border:none;border-radius:10px;cursor:pointer;
+  color:#fff;font-weight:700;font-size:14.5px;letter-spacing:.3px;transition:background .15s,transform .1s;position:relative;overflow:hidden}
+.bigbtn .ic{width:18px;height:18px;color:#fff}
+.bigbtn:active{transform:scale(.985)}
+.start{background:var(--green)}.start:hover{background:var(--green-h)}.start.live{background:var(--green-h)}
+.stop{background:var(--red)}.stop:hover{background:var(--red-h)}
+.status{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;font-weight:600;font-size:12.5px;color:var(--dim)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--dim2)}
+.status.live{color:var(--green-sig)}.status.live .dot{background:var(--green-sig);animation:blink 1.2s infinite}
+.status.err{color:var(--red-sig)}.status.err .dot{background:var(--red-sig)}
+@keyframes blink{50%{opacity:.4}}
+.tiny{color:var(--dim2);font-size:10px;text-align:center;margin-top:8px;letter-spacing:.2px;font-weight:500}
+.tiny kbd{background:var(--card2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-family:inherit;font-size:9.5px;color:var(--dim)}
+.ulink{cursor:pointer;color:var(--dim);border-bottom:1px dotted var(--dim2)}
+.ulink:hover{color:var(--red-sig);border-color:var(--red-sig)}
+.ulink.arm{color:#fff;background:var(--red);border:none;border-radius:4px;padding:1px 6px}
+.hidden{display:none!important}.disabled{opacity:.4;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="app"><div class="frame">
+  <div class="profilebar">
+    <select id="profileSel"><option value="">— Profile —</option></select>
+    <button class="minibtn" id="pLoad">Load</button>
+    <button class="minibtn" id="pSave">Save</button>
+    <button class="minibtn" id="pNew">New</button>
+    <button class="minibtn" id="pDel">Del</button>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <span class="pill"></span>
+    <button data-val="click" class="on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5 18.5 11l-5 1.2 2.8 4.8-2 1.2-2.8-4.8L7.5 17z"/></svg>Auto Click</button>
+    <button data-val="macro"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Macro</button>
+    <button data-val="afk"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Anti-AFK</button>
+  </div>
+
+  <div class="body">
+    <!-- CLICK -->
+    <div class="panel on" data-panel="click">
+      <div class="card">
+        <h3><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Interval</h3>
+        <div class="row">
+          <input type="number" id="iv" min="0" value="100">
+          <div class="seg grow" data-key="interval_unit" id="segUnit"><span class="pill"></span>
+            <button data-val="ms" class="on">ms</button><button data-val="sec">sec</button><button data-val="min">min</button>
+          </div>
+        </div>
+        <div class="row spread"><span class="cps" id="cps"></span></div>
+        <div class="row"><span class="lbl">Jitter</span><div class="slidewrap"><input type="range" class="slider" id="jit" min="0" max="90" value="0"></div><span class="val" id="jitv">0%</span></div>
+      </div>
+
+      <div class="card">
+        <h3><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Action</h3>
+        <div class="seg" data-key="action" style="margin-bottom:11px"><span class="pill"></span>
+          <button data-val="mouse" class="on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 7v4"/></svg>Mouse</button>
+          <button data-val="key"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h0M10 10h0M14 10h0M18 10h0M8 14h8"/></svg>Keyboard</button>
+        </div>
+        <div id="mouseOpts">
+          <div class="row"><span class="lbl">Button</span>
+            <div class="seg grow" data-key="button"><span class="pill"></span>
+              <button data-val="Left" class="on">Left</button><button data-val="Right">Right</button><button data-val="Middle">Middle</button>
+            </div>
+          </div>
+          <div class="row spread"><span class="lbl">Double click</span>
+            <label class="switch"><input type="checkbox" id="dbl"><span class="track"><span class="knob"></span></span></label>
+          </div>
+        </div>
+        <div class="row hidden" id="keyOpts"><span class="lbl">Key</span><select id="keySel" class="grow"></select></div>
+      </div>
+
+      <div class="card">
+        <h3><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2v6M14 5h6M4 7v10a2 2 0 0 0 2 2h12"/></svg>Repeat</h3>
+        <div class="row">
+          <div class="seg grow" data-key="repeat"><span class="pill"></span>
+            <button data-val="forever" class="on">Until stopped</button><button data-val="count">Count</button>
+          </div>
+          <input type="number" id="cnt" min="1" value="100">
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.3-6-10a6 6 0 1 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>Click position</h3>
+        <div class="seg" data-key="pos" style="margin-bottom:11px"><span class="pill"></span>
+          <button data-val="cursor" class="on">Follow cursor</button><button data-val="fixed">Fixed point</button>
+        </div>
+        <div class="row" id="posFixed">
+          <span class="lbl">X</span><input type="number" id="px" value="0">
+          <span class="lbl" style="min-width:14px">Y</span><input type="number" id="py" value="0">
+          <button class="minibtn grow" id="capPos"><svg class="ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.3-6-10a6 6 0 1 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.3"/></svg>Capture (F4)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Pixel trigger</h3>
+        <div class="row spread"><span>Only click when a pixel matches</span>
+          <label class="switch"><input type="checkbox" id="pxEn"><span class="track"><span class="knob"></span></span></label>
+        </div>
+        <div id="pxBox">
+          <div class="row"><span class="lbl">X</span><input type="number" id="pxx" value="0"><span class="lbl" style="min-width:14px">Y</span><input type="number" id="pxy" value="0"><div class="swatch" id="pxSw"></div></div>
+          <div class="row"><button class="minibtn grow" id="capPx"><svg class="ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Pick pixel (F4)</button></div>
+          <div class="row"><span class="lbl">Tol</span><div class="slidewrap"><input type="range" class="slider" id="pxtol" min="0" max="90" value="10"></div><span class="val" id="pxtolv">10%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MACRO -->
+    <div class="panel" data-panel="macro">
+      <button class="recbtn" id="recBtn"><span class="recdot"></span> Record</button>
+      <div class="card">
+        <h3><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Steps — run top → bottom, then loop</h3>
+        <div class="steps" id="stepsList"></div>
+      </div>
+      <div class="card">
+        <h3><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add a step</h3>
+        <div class="seg" data-key="step_type" id="segStep" style="margin-bottom:11px"><span class="pill"></span>
+          <button data-val="Mouse Click" class="on">Mouse</button><button data-val="Key Press">Key</button><button data-val="Wait">Wait</button>
+        </div>
+        <div class="row" id="stepBtnRow"><span class="lbl">Button</span>
+          <div class="seg grow" data-key="step_button"><span class="pill"></span>
+            <button data-val="Left" class="on">Left</button><button data-val="Right">Right</button><button data-val="Middle">Middle</button>
+          </div>
+        </div>
+        <div class="row hidden" id="stepKeyRow"><span class="lbl">Key</span><select id="stepKey" class="grow"></select></div>
+        <div class="row" id="stepPosRow">
+          <label class="switch"><input type="checkbox" id="stepFixed"><span class="track"><span class="knob"></span></span></label>
+          <span class="lbl" style="min-width:34px">X</span><input type="number" id="stepX" value="0">
+          <span class="lbl" style="min-width:14px">Y</span><input type="number" id="stepY" value="0">
+          <button class="minibtn" id="capStep"><svg class="ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.3-6-10a6 6 0 1 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.3"/></svg></button>
+        </div>
+        <div class="row"><span class="lbl">Wait</span><input type="number" id="stepDelay" value="200"><span class="hint">ms after</span>
+          <button class="minibtn grow" id="addStep"><svg class="ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add step</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="row">
+          <button class="minibtn" id="mUp">↑ Up</button><button class="minibtn" id="mDown">↓ Down</button>
+          <button class="minibtn" id="mDel">Delete</button><button class="minibtn" id="mClr">Clear</button>
+        </div>
+        <div class="row" style="margin-top:9px">
+          <div class="seg grow" data-key="macro_repeat"><span class="pill"></span>
+            <button data-val="forever" class="on">Loop forever</button><button data-val="count">Count</button>
+          </div>
+          <input type="number" id="mCount" min="1" value="10">
+        </div>
+      </div>
+    </div>
+
+    <!-- AFK -->
+    <div class="panel" data-panel="afk">
+      <div class="card">
+        <h3><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Stay active while AFK</h3>
+        <div class="row"><span class="lbl">Every</span><input type="number" id="afkIv" min="1" value="60"><span class="hint">seconds</span></div>
+        <div class="row"><span class="lbl">Jitter</span><div class="slidewrap"><input type="range" class="slider" id="afkJit" min="0" max="90" value="10"></div><span class="val" id="afkJitv">10%</span></div>
+        <div class="seg" data-key="afk_method" style="margin:4px 0 11px"><span class="pill"></span>
+          <button data-val="wiggle" class="on">Wiggle mouse</button><button data-val="key">Tap key</button>
+        </div>
+        <div class="row hidden" id="afkKeyRow"><span class="lbl">Key</span><select id="afkKey" class="grow"></select></div>
+        <p class="hint">Wiggle nudges the mouse a few pixels (safest in menus). Tap a key your game ignores.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="hkrow">
+      <span class="hint"><svg class="ic-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="11" rx="2"/><path d="M7 11h0M11 11h0M15 11h0M8 14.5h8"/></svg> Hotkey</span>
+      <select id="hkSel"></select>
+      <div class="seg" data-key="trigger"><span class="pill"></span>
+        <button data-val="toggle" class="on">Toggle</button><button data-val="hold">Hold</button>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="bigbtn start" id="startBtn"><svg class="ic" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><path d="M9 6.5 17.5 12 9 17.5z"/></svg>Start</button>
+      <button class="bigbtn stop" id="stopBtn"><svg class="ic" viewBox="0 0 24 24" fill="#fff"><rect x="6.5" y="6.5" width="11" height="11" rx="3.2"/></svg>Stop</button>
+    </div>
+    <div class="status" id="status"><span class="dot"></span><span id="statusTxt">stopped</span></div>
+    <div class="tiny"><kbd>F8</kbd> panic · <kbd>F4</kbd> capture · <kbd>F9</kbd> stop rec · <span id="uninstall" class="ulink">Uninstall</span></div>
+  </div>
+</div></div>
+
+<script>
+let api=null, INIT=null, VK2NAME={};
+const S = {
+  mode:'click', interval_unit:'ms', interval_ms:100, jitter:0,
+  action:'mouse', button:'Left', double:false, key:'Space',
+  repeat:'forever', count:100, pos:'cursor', x:0, y:0,
+  px_enabled:false, px_x:0, px_y:0, px_color:'#39d353', px_tol:10,
+  macro_steps:[], macro_repeat:'forever', macro_count:10,
+  step_type:'Mouse Click', step_button:'Left', step_key:'Space', step_fixed:false, step_x:0, step_y:0, step_delay:200,
+  afk_interval:60, afk_method:'wiggle', afk_key:'Space', afk_jitter:10,
+  hotkey:'F6', trigger:'toggle',
+};
+const $=id=>document.getElementById(id);
+let macroSel=null, lastCap=0, lastRec=0;
+const SVG={
+  mouse:'<svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 7v4"/></svg>',
+  key:'<svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h0M10 10h0M14 10h0M8 14h8"/></svg>',
+  wait:'<svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+  move:'<svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+};
+
+function push(){ if(api) api.set_settings(JSON.parse(JSON.stringify(S))); }
+
+function placePill(seg){
+  const on=seg.querySelector('button.on'), pill=seg.querySelector('.pill');
+  if(on&&pill){ pill.style.width=on.offsetWidth+'px'; pill.style.transform='translateX('+(on.offsetLeft-4)+'px)'; }
+}
+function initSegs(){
+  document.querySelectorAll('.seg, .tabs').forEach(seg=>{
+    seg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setSeg(seg,b.dataset.val)));
+  });
+}
+function setSeg(seg,val,silent){
+  seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.val===val));
+  placePill(seg);
+  const key=seg.dataset.key;
+  if(seg.classList.contains('tabs')){ selectTab(val); }
+  if(key){ S[key]=val; onSegChange(key,val); if(!silent){ push(); } }
+}
+function selectTab(val){
+  S.mode=val;
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on', p.dataset.panel===val));
+  setTimeout(()=>document.querySelectorAll('.panel.on .seg').forEach(placePill),30);
+  push();
+}
+function onSegChange(key,val){
+  if(key==='action'){ $('mouseOpts').classList.toggle('hidden',val!=='mouse'); $('keyOpts').classList.toggle('hidden',val!=='key'); }
+  if(key==='pos'){ $('posFixed').classList.toggle('disabled',val!=='fixed'); }
+  if(key==='afk_method'){ $('afkKeyRow').classList.toggle('hidden',val!=='key'); }
+  if(key==='step_type'){ syncStepEditor(); }
+}
+function syncStepEditor(){
+  const t=S.step_type;
+  $('stepBtnRow').classList.toggle('hidden',t!=='Mouse Click');
+  $('stepPosRow').classList.toggle('hidden',t!=='Mouse Click');
+  $('stepKeyRow').classList.toggle('hidden',t!=='Key Press');
+}
+function fillSelect(sel,names,val){ sel.innerHTML=''; names.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o);}); sel.value=val; }
+
+function applyState(){
+  $('iv').value = S.interval_unit==='min'? Math.round(S.interval_ms/60000) : S.interval_unit==='sec'? Math.round(S.interval_ms/1000) : S.interval_ms;
+  $('jit').value=S.jitter; $('jitv').textContent=S.jitter+'%';
+  $('dbl').checked=S.double; $('cnt').value=S.count; $('px').value=S.x; $('py').value=S.y;
+  $('pxEn').checked=S.px_enabled; $('pxx').value=S.px_x; $('pxy').value=S.px_y; $('pxtol').value=S.px_tol; $('pxtolv').textContent=S.px_tol+'%';
+  $('pxSw').style.background=S.px_color; $('mCount').value=S.macro_count;
+  $('stepX').value=S.step_x; $('stepY').value=S.step_y; $('stepFixed').checked=S.step_fixed; $('stepDelay').value=S.step_delay;
+  $('afkIv').value=S.afk_interval; $('afkJit').value=S.afk_jitter; $('afkJitv').textContent=S.afk_jitter+'%';
+  if($('keySel').options.length){ $('keySel').value=S.key; $('stepKey').value=S.step_key; $('afkKey').value=S.afk_key; $('hkSel').value=S.hotkey; }
+  setSeg($('tabs'),S.mode,true);
+  document.querySelectorAll('.seg[data-key]').forEach(seg=>setSeg(seg,S[seg.dataset.key],true));
+  $('pxBox').classList.toggle('disabled',!S.px_enabled);
+  updateCps(); syncStepEditor(); renderMacro();
+  setTimeout(()=>document.querySelectorAll('.seg,.tabs').forEach(placePill),40);
+}
+function updateCps(){
+  const f=S.interval_unit==='min'?60000:S.interval_unit==='sec'?1000:1;
+  S.interval_ms=Math.max(0,(parseFloat($('iv').value)||0)*f);
+  $('cps').textContent = S.interval_ms>0? ('≈ '+(1000/S.interval_ms).toFixed(S.interval_ms<100?1:2)+' clicks / sec') : 'as fast as possible';
+}
+function stepLabel(s){
+  const d=Math.round((s.delay||0)*1000);
+  if(s.action==='wait') return [SVG.wait,'Wait',d];
+  if(s.action==='key') return [SVG.key,'Press '+(VK2NAME[s.key_vk]||('0x'+(s.key_vk||0).toString(16))),d];
+  if(s.action==='move') return [SVG.move,'Move '+(s.dx||0)+','+(s.dy||0),d];
+  const pos=s.fixed?('@('+(s.x||0)+','+(s.y||0)+')'):'@cursor';
+  return [SVG.mouse,(s.button||'Left')+' click '+pos,d];
+}
+function renderMacro(){
+  const list=$('stepsList'); list.innerHTML='';
+  if(!S.macro_steps.length){ list.innerHTML='<div class="empty">No steps yet — record or add one below.</div>'; return; }
+  S.macro_steps.forEach((s,i)=>{
+    const [ic,txt,d]=stepLabel(s);
+    const el=document.createElement('div'); el.className='step'+(i===macroSel?' sel':'');
+    el.innerHTML='<span class="n">'+(i+1)+'</span>'+ic+'<span>'+txt+'</span><span class="d">'+d+' ms</span>';
+    el.onclick=()=>{macroSel=i;renderMacro();};
+    list.appendChild(el);
+  });
+}
+function addStep(){
+  const d=Math.max(0,parseInt($('stepDelay').value)||0)/1000; let st;
+  if(S.step_type==='Wait') st={action:'wait',delay:d};
+  else if(S.step_type==='Key Press') st={action:'key',key_vk:INIT.key_map[S.step_key]||0x20,delay:d};
+  else st={action:'mouse',button:S.step_button,fixed:$('stepFixed').checked,x:parseInt($('stepX').value)||0,y:parseInt($('stepY').value)||0,delay:d};
+  S.macro_steps.push(st); macroSel=S.macro_steps.length-1; renderMacro(); push();
+}
+async function poll(){
+  if(!api) return;
+  try{
+    const st=await api.get_state();
+    const stt=$('status'), btn=$('startBtn');
+    stt.classList.toggle('live',st.running); stt.classList.toggle('err',!!st.error&&!st.running);
+    btn.classList.toggle('live',st.running);
+    $('statusTxt').textContent = st.running? ('RUNNING · '+st.count+' actions') : (st.error? st.error : ('stopped · press '+S.hotkey+' to start'));
+    const rb=$('recBtn'); rb.classList.toggle('rec',st.recording);
+    rb.innerHTML = st.recording? '<span class="recdot"></span> Stop recording (F9)' : '<span class="recdot"></span> Record';
+    if(st.capture_token!==lastCap && st.capture){ lastCap=st.capture_token; applyCapture(st.capture); }
+    if(st.recorded_token!==lastRec && st.recorded){ lastRec=st.recorded_token; S.macro_steps.push(...st.recorded); macroSel=S.macro_steps.length-1; renderMacro(); push(); }
+  }catch(e){}
+}
+function applyCapture(c){
+  if(c.kind==='pos'){ S.x=c.x;S.y=c.y; setSeg(document.querySelector('.seg[data-key=pos]'),'fixed'); applyState(); }
+  else if(c.kind==='pixel'){ S.px_x=c.x;S.px_y=c.y;S.px_color=c.color;S.px_enabled=true; applyState(); }
+  else if(c.kind==='macro'){ S.step_x=c.x;S.step_y=c.y; $('stepFixed').checked=true; $('stepX').value=c.x;$('stepY').value=c.y; }
+  push();
+}
+async function refreshProfiles(names,sel){
+  const s=$('profileSel'); s.innerHTML='<option value="">— Profile —</option>';
+  (names||[]).forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;s.appendChild(o);});
+  if(sel) s.value=sel;
+}
+function bind(){
+  $('iv').addEventListener('input',()=>{updateCps();push();});
+  $('jit').addEventListener('input',e=>{S.jitter=+e.target.value;$('jitv').textContent=S.jitter+'%';push();});
+  $('dbl').addEventListener('change',e=>{S.double=e.target.checked;push();});
+  $('cnt').addEventListener('input',e=>{S.count=parseInt(e.target.value)||0;push();});
+  $('px').addEventListener('input',e=>{S.x=parseInt(e.target.value)||0;push();});
+  $('py').addEventListener('input',e=>{S.y=parseInt(e.target.value)||0;push();});
+  $('keySel').addEventListener('change',e=>{S.key=e.target.value;push();});
+  $('pxEn').addEventListener('change',e=>{S.px_enabled=e.target.checked;$('pxBox').classList.toggle('disabled',!S.px_enabled);push();});
+  $('pxx').addEventListener('input',e=>{S.px_x=parseInt(e.target.value)||0;push();});
+  $('pxy').addEventListener('input',e=>{S.px_y=parseInt(e.target.value)||0;push();});
+  $('pxtol').addEventListener('input',e=>{S.px_tol=+e.target.value;$('pxtolv').textContent=S.px_tol+'%';push();});
+  $('mCount').addEventListener('input',e=>{S.macro_count=parseInt(e.target.value)||0;push();});
+  $('stepKey').addEventListener('change',e=>{S.step_key=e.target.value;});
+  $('stepX').addEventListener('input',e=>{S.step_x=parseInt(e.target.value)||0;});
+  $('stepY').addEventListener('input',e=>{S.step_y=parseInt(e.target.value)||0;});
+  $('stepFixed').addEventListener('change',e=>{S.step_fixed=e.target.checked;});
+  $('stepDelay').addEventListener('input',e=>{S.step_delay=parseInt(e.target.value)||0;});
+  $('afkIv').addEventListener('input',e=>{S.afk_interval=parseInt(e.target.value)||1;push();});
+  $('afkJit').addEventListener('input',e=>{S.afk_jitter=+e.target.value;$('afkJitv').textContent=S.afk_jitter+'%';push();});
+  $('afkKey').addEventListener('change',e=>{S.afk_key=e.target.value;push();});
+  $('hkSel').addEventListener('change',e=>{S.hotkey=e.target.value;push();});
+  $('capPos').onclick=()=>{api.arm_capture('pos');$('statusTxt').textContent='Move mouse to target, press F4…';};
+  $('capPx').onclick=()=>{api.arm_capture('pixel');$('statusTxt').textContent='Move mouse to pixel, press F4…';};
+  $('capStep').onclick=()=>{api.arm_capture('macro');$('statusTxt').textContent='Move mouse, press F4…';};
+  $('addStep').onclick=addStep;
+  $('mUp').onclick=()=>moveStep(-1); $('mDown').onclick=()=>moveStep(1);
+  $('mDel').onclick=()=>{if(macroSel!=null){S.macro_steps.splice(macroSel,1);macroSel=null;renderMacro();push();}};
+  $('mClr').onclick=()=>{S.macro_steps=[];macroSel=null;renderMacro();push();};
+  $('recBtn').onclick=async()=>{ const st=await api.get_state(); if(st.recording) api.record_stop(); else api.record_start(); };
+  $('startBtn').onclick=()=>api.start(JSON.parse(JSON.stringify(S)));
+  $('stopBtn').onclick=()=>api.stop();
+  $('uninstall').onclick=()=>{ const el=$('uninstall');
+    if(el.dataset.arm){ el.textContent='Removing…'; api.uninstall(); }
+    else { el.dataset.arm='1'; el.classList.add('arm'); el.textContent='Click again to remove';
+           setTimeout(()=>{ el.dataset.arm=''; el.classList.remove('arm'); el.textContent='Uninstall'; },3500); } };
+  $('pLoad').onclick=async()=>{const n=$('profileSel').value; if(!n)return; const s=await api.load_profile(n); if(s){Object.assign(S,s);applyState();push();}};
+  $('pSave').onclick=async()=>{let n=$('profileSel').value; if(!n){return $('pNew').onclick();} const names=await api.save_profile(n,JSON.parse(JSON.stringify(S))); refreshProfiles(names,n);};
+  $('pNew').onclick=async()=>{const n=prompt('Profile name:'); if(!n)return; const names=await api.save_profile(n,JSON.parse(JSON.stringify(S))); refreshProfiles(names,n);};
+  $('pDel').onclick=async()=>{const n=$('profileSel').value; if(!n)return; const names=await api.delete_profile(n); refreshProfiles(names,'');};
+}
+function moveStep(d){ if(macroSel==null)return; const j=macroSel+d; if(j<0||j>=S.macro_steps.length)return; const a=S.macro_steps; [a[macroSel],a[j]]=[a[j],a[macroSel]]; macroSel=j; renderMacro(); push(); }
+
+async function init(){
+  api=window.pywebview.api;
+  INIT=await api.get_initial();
+  VK2NAME={}; Object.keys(INIT.key_map).forEach(k=>VK2NAME[INIT.key_map[k]]=k);
+  fillSelect($('keySel'),INIT.key_names,S.key);
+  fillSelect($('stepKey'),INIT.key_names,S.step_key);
+  fillSelect($('afkKey'),INIT.key_names,S.afk_key);
+  fillSelect($('hkSel'),INIT.hotkeys,S.hotkey);
+  if(INIT.settings){ Object.assign(S,INIT.settings); }
+  initSegs(); bind(); applyState();
+  refreshProfiles(INIT.profiles, INIT.last);
+  push();
+  setInterval(poll,120);
+}
+window.addEventListener('pywebviewready', init);
+window.addEventListener('resize',()=>document.querySelectorAll('.seg,.tabs').forEach(placePill));
+</script>
+</body>
+</html>

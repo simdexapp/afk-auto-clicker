@@ -18,3 +18,35 @@ clicker.py
 
 # local signing config (never commit the real one; secret-free but machine-specific)
 *.local.ps1
+
+# --- migration safety (auto) ---
+node_modules/
+dist/
+build/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+.angular/
+target/
+.turbo/
+.expo/
+.wrangler/
+.open-next/
+.vercel/
+coverage/
+.gradle/
+bin/
+obj/
+.DS_Store
+*.log
+.env
+.env.*
+!*.example
+*.pem
+*.key
+*.pfx
+*.keystore
+*.jks
+id_rsa
+id_ed25519
